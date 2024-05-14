@@ -1,42 +1,42 @@
+jobs:
+  dependabot-approve:
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    name: Dependabot PR Automation
+    runs-on: self-hosted
+    steps:
+    - continue-on-error: true
+      id: metadata
+      name: Retrieve Dependabot metadata
+      uses: dependabot/fetch-metadata@v2
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - continue-on-error: true
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        PR_URL: ${{github.event.pull_request.html_url}}
+      name: Approve Pull Request
+      run: gh pr review --approve "$PR_URL"
+  dependabot-auto-merge:
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    runs-on: self-hosted
+    steps:
+    - continue-on-error: true
+      id: metadata
+      name: Retrieve Dependabot metadata
+      uses: dependabot/fetch-metadata@v2
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - continue-on-error: true
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        PR_URL: ${{github.event.pull_request.html_url}}
+      if: ${{steps.metadata.outputs.update-type != 'version-update:semver-major'}}
+      name: Auto-merge Pull Request
+      run: gh pr merge --auto --merge "$PR_URL"
 name: Dependabot Automation
-on: pull_request
-
+on:
+  repository_dispatch:
+    types: trigger-ga___dependabot-automation.yml
 permissions:
   contents: write
   pull-requests: write
-
-jobs:
-  dependabot-approve:
-    name: Dependabot PR Automation
-
-    runs-on: ubuntu-latest
-    if: ${{ github.actor == 'dependabot[bot]' }}
-    steps:
-      - name: Retrieve Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@v2
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-
-      - name: Approve Pull Request
-        run: gh pr review --approve "$PR_URL"
-        env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-
-  dependabot-auto-merge:
-    runs-on: ubuntu-latest
-    if: ${{ github.actor == 'dependabot[bot]' }}
-    steps:
-      - name: Retrieve Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@v2
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-
-      - name: Auto-merge Pull Request
-        if: ${{steps.metadata.outputs.update-type != 'version-update:semver-major'}}
-        run: gh pr merge --auto --merge "$PR_URL"
-        env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

@@ -1,23 +1,18 @@
-name: Announce release on Slack
-
-on:
-  # Triggers the workflow on new release
-    release:
-      types: [ published ]
-
 jobs:
   my-job:
     name: Slack notification
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Send release notification data to Slack workflow
-        id: slack
-        uses: slackapi/slack-github-action@v1.26.0
-        with:
-          payload: |
-            {
-              "release-name": "${{ github.event.release.name }}",
-              "release-url" : "${{ github.event.release.html_url }}"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    - continue-on-error: true
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      id: slack
+      name: Send release notification data to Slack workflow
+      uses: slackapi/slack-github-action@v1.26.0
+      with:
+        payload: "{\n  \"release-name\": \"${{ github.event.release.name }}\",\n \
+          \ \"release-url\" : \"${{ github.event.release.html_url }}\"\n}\n"
+name: Announce release on Slack
+on:
+  repository_dispatch:
+    types: trigger-ga___slack-release-notification.yml
